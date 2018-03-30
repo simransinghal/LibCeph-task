@@ -8,6 +8,7 @@
 #include <string.h>
 #include <sys/statvfs.h>
 #include <cephfs/libcephfs.h>
+#include <unistd.h>
 
 #define MB64 (1<<26)
 
@@ -16,6 +17,7 @@ int main(int argc, const char **argv)
 	struct ceph_mount_info *cmount;
 	int ret, fd, len;
 	char buffer[BUFSIZ];
+	unsigned char check[SHA256_DIGEST_LENGTH];
 
 	if (argc < 3) {
 		fprintf(stderr, "usage: %s <conf> <file>\n", argv[0]);
@@ -69,12 +71,12 @@ int main(int argc, const char **argv)
 		SHA256_Update(&ctx, buffer, len);
 	} while (len == BUFSIZ);			
 	
-	SHA256_Final(buffer, &ctx);
+	SHA256_Final(check, &ctx);
 	
 	ceph_shutdown(cmount);	
 
 	for (len = 0; len < SHA256_DIGEST_LENGTH; ++len)
-		printf("%02x", buffer[len]);
+		printf("%02x", check[len]);
 
 	putchar('\n');	
 
